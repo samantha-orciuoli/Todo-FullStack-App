@@ -47,6 +47,7 @@
               {% endfor %}
             </ul>
         </div>
+
         <div class="todos-wrapper">
             <h4> Todo Items</h4>
             <form action="/todos/create" method="POST" id="todo-form">
@@ -78,9 +79,9 @@
 
                 checkbox.onchange = function (e) {
                     if (e.target.checked) {
-                        const listId = e.target.dataset.id;
+                        const list_id = e.target.dataset.id; //listId changed to list_id
 
-                        fetch('/lists/' + listId + '/set-completed', {
+                        fetch('/lists/' + list_id + '/set-completed', { //listId changed to list_id
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -110,9 +111,9 @@
 
                 checkbox.onchange = function (e) {
                     const newCompleted = e.target.checked;
-                    const todoId = e.target.dataset.id;
+                    const todo_id = e.target.dataset.id; //todoId changed to todo_id
 
-                    fetch('/todos/' + todoId + '/set-completed', {
+                    fetch('/todos/' + todo_id + '/set-completed', { //todoId changed to todo_id
                         method: 'POST',
                         body: JSON.stringify({
                             'completed': newCompleted
@@ -136,8 +137,8 @@
                 const deleteBtn = deleteBtns[i];
                 deleteBtn.onclick = function(e) {
                 console.log("Delete event: ", e);
-                const todoId = e.target.dataset.id;
-                fetch('/todos/'+ todoId + '/delete',{
+                const todo_id = e.target.dataset.id; //todoId changed to todo_id
+                fetch('/todos/'+ todo_id + '/delete',{ //todoId changed to todo_id
                     method: 'DELETE'
                 }).then(function() {
                     console.log('Parent?', e.target);
@@ -158,9 +159,9 @@
                 const deleteBtn = deleteListBtns[i];
                 deleteBtn.onclick = function(e) {
                 console.log("Delete event: ", e);
-                const listId = e.target.dataset.id;
+                const list_id = e.target.dataset.id; //listId changed to list_id
 
-                fetch('/lists/'+ listId + '/delete',{
+                fetch('/lists/'+ list_id + '/delete',{ //listId changed to list_id
                     method: 'DELETE'
                 }).then(function() {
                     console.log('Parent?', e.target);

@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres@localhost:5432/todoapp'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app) # links SQLAlchemy to our Flask app
 migrate = Migrate(app, db)
 
@@ -12,11 +13,11 @@ class Todo(db.Model):
     __tablename__= 'todos'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(), nullable=False)
-    completed = db.Column(db.Boolean, nullable=False, default=False)
+    complete = db.Column(db.Boolean, nullable=False, default=False) #changed to complete
     list_id = db.Column(db.Integer, db.ForeignKey('todolists.id'), nullable = False)
 
     def __repr__(self):
-        return f'<Todo {self.id} {self.description}>' # for debugging purposes
+        return f'<Todo {self.id} {self.description} {self.complete}>' # for debugging purposes
     
 class TodoList(db.Model):
     __tablename__ = 'todolists'
@@ -44,30 +45,11 @@ def create_todo(): # this is the route handler for the python decorator above
     finally:
         db.session.close()
     if error == True:
-            abort(500)
+            abort(400)
     else:
         return jsonify(body)  
     #returns json data back to the client for us
     # return redirect(url_for('index')) #redirect/changes view back to the index route with new todo items - done if you don't use AJAX for asynchronous updates
-
-@app.route('/todos/<todo_id>/set-completed', methods=['POST'])
-def set_completed_todo(todo_id):
-    error = False
-    try:
-        completed = request.get_json()['completed']
-        todo = Todo.query.get(todo_id)
-        todo.completed = completed
-        db.session.commit()
-    except:
-        db.session.rollback()
-        error = True
-    finally:
-        db.session.close()
-    if error:
-        abort(500)
-    else:
-        return '', 200
-    # return redirect(url_for('index')) # grabs fresh list of all the todo items and refreshing the entire page. to-do items for us
 
 @app.route('/todos/<todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
@@ -109,6 +91,25 @@ def update_todo(todo_id):
         abort(500)
     else:
         return redirect(url_for('index'))
+    
+@app.route('/todos/<todo_id>/set-completed', methods=['POST'])
+def set_completed_todo(todo_id):
+    error = False
+    try:
+        completed = request.get_json()['completed']
+        todo = Todo.query.get(todo_id)
+        todo.completed = completed
+        db.session.commit()
+    except:
+        db.session.rollback()
+        error = True
+    finally:
+        db.session.close()
+    if error:
+        abort(500)
+    else:
+        return '', 200
+    # return redirect(url_for('index')) # grabs fresh list of all the todo items and refreshing the entire page. to-do items for us
 
 """Returns a template html file. render_template specifies html file t render to the user when they visit this route.
 Note: flask looks for the folder templates to find html files called with render_template
@@ -116,9 +117,11 @@ We can pass in variabes to use in our template into render_template
 Flask processes html using a templating engine called Jinja that allows you to embded nonhtml into html files"""
 @app.route('/lists/<list_id>') 
 def get_list_todos(list_id):
-    return render_template('index.html', lists=TodoList.query.all(), 
-                           todos=Todo.query.filter_by(list_id = list_id).order_by('id').all(),
-                           active_list=TodoList.query.get(list_id)) 
+    lists = TodoList.query.all()
+    active_list = TodoList.query.get(list_id)
+    todos = Todo.query.filter_by(list_id=list_id).order_by('id').all()
+
+    return render_template('index.html', todos=todos, lists=lists, active_list=active_list)
                            
 @app.route('/lists/create', methods=['POST'])
 def create_list():
@@ -149,7 +152,6 @@ def delete_list(list_id):
         list = TodoList.query.get(list_id)
         for todo in list.todos:
             db.session.delete(todo)
-
         db.session.delete(list)
         db.session.commit()
     except():
@@ -166,21 +168,16 @@ def delete_list(list_id):
 @app.route('/lists/<list_id>/set-completed', methods=['POST'])
 def set_completed_list(list_id):
     error = False
-
     try:
         list = TodoList.query.get(list_id)
-
         for todo in list.todos:
             todo.completed = True
-
         db.session.commit()
     except:
         db.session.rollback()
-
         error = True
     finally:
         db.session.close()
-
     if error:
         abort(500)
     else:
