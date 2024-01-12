@@ -181,7 +181,7 @@ def set_completed_list(list_id):
     if error:
         abort(500)
     else:
-        return '', 200
+        return jsonify({'success': True})
     
 @app.route('/') # visit home page that redirect to list with id of 1
 def index():

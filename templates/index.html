@@ -26,6 +26,9 @@
             .lists-wrapper, .todos-wrapper{
                 display: inline-block;
                 vertical-align: top;
+                border: 2px solid #ccc;
+                margin: 10px;
+                padding:10px;
             }
         </style>
     </head>
@@ -86,16 +89,21 @@
                             headers: {
                                 'Content-Type': 'application/json'
                             }
+                        }).then(function (response) { // get the response as JSON
+                            return response.json();
                         })
                         .then(function (jsonResponse) {
                             document.getElementById('error').className = 'hidden';
 
                             const todoCheckboxes = document.querySelectorAll('.todo-check-completed');
 
-                            for (let i = 0; i < todoCheckboxes.length; i++) {
-                                const checkbox = todoCheckboxes[i];
+                            if (jsonResponse['success'] == true){
+                                window.location.reload(true);
+                                for (let i = 0; i < todoCheckboxes.length; i++) {
+                                    const checkbox = todoCheckboxes[i];
 
-                                checkbox.checked = true;
+                                    checkbox.checked = true;
+                                }
                             }
                         })
                         .catch(function () {
